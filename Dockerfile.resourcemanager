@@ -1,0 +1,17 @@
+# Dockerfile.resourcemanager
+FROM adoptopenjdk:8
+
+# Define a variável de ambiente JAVA_HOME
+ENV JAVA_HOME /path/to/jdk-22
+
+# Outras instruções do Dockerfile...
+
+
+# Use the base Hadoop resourcemanager image
+FROM docker.io/bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+
+# Create the hadoop group
+RUN groupadd hadoop
+
+# Add the yarn user to the hadoop group and create the home directory
+RUN useradd --create-home --shell /bin/bash --groups hadoop yarn

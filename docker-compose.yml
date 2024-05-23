@@ -1,0 +1,102 @@
+version: '3.8'
+services:
+  namenode:
+    build:
+      context: .
+      dockerfile: Dockerfile.namenode
+    container_name: namenode
+    hostname: namenode
+    volumes:
+      - namenode-data:/hadoop/dfs/name
+    environment:
+      - CLUSTER_NAME=test
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - HDFS_CONF_dfs_namenode_datanode_registration_ip___hostname___check=false
+      - HDFS_NAMENODE_USER=hdfs
+      - HDFS_DATANODE_USER=hdfs
+      - HDFS_SECONDARYNAMENODE_USER=hdfs
+      - YARN_RESOURCEMANAGER_USER=yarn
+      - YARN_NODEMANAGER_USER=yarn
+      - JAVA_HOME=C:\Program Files\Java\jdk-22
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+
+  datanode:
+    build:
+      context: .
+      dockerfile: Dockerfile.datanode
+    container_name: datanode
+    hostname: datanode
+    volumes:
+      - datanode-data:/hadoop/dfs/data
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - HDFS_CONF_dfs_datanode_address=datanode:50010
+      - HDFS_CONF_dfs_datanode_http_address=datanode:50075
+      - HDFS_CONF_dfs_datanode_ipc_address=datanode:50020
+      - HDFS_CONF_dfs_replication=1
+      - HDFS_CONF_dfs_namenode_datanode_registration_ip___hostname___check=false
+      - HDFS_NAMENODE_USER=hdfs
+      - HDFS_DATANODE_USER=hdfs
+      - HDFS_SECONDARYNAMENODE_USER=hdfs
+      - JAVA_HOME=C:\Program Files\Java\jdk-22
+    depends_on:
+      - namenode
+
+  resourcemanager:
+    build:
+      context: .
+      dockerfile: Dockerfile.resourcemanager
+    container_name: resourcemanager
+    hostname: resourcemanager
+    environment:
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+      - YARN_CONF_yarn_nodemanager_aux_services=mapreduce_shuffle
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - YARN_RESOURCEMANAGER_USER=yarn
+      - JAVA_HOME=C:\Program Files\Java\jdk-22
+    ports:
+      - "8088:8088"
+    depends_on:
+      - namenode
+
+  nodemanager:
+    build:
+      context: .
+      dockerfile: Dockerfile.nodemanager
+    container_name: nodemanager
+    hostname: nodemanager
+    environment:
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+      - YARN_CONF_yarn_nodemanager_aux_services=mapreduce_shuffle
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - YARN_NODEMANAGER_USER=yarn
+      - JAVA_HOME=C:\Program Files\Java\jdk-22
+    depends_on:
+      - resourcemanager
+
+  historyserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.historyserver
+    container_name: historyserver
+    hostname: historyserver
+    environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - HDFS_CONF_dfs_namenode_datanode_registration_ip___hostname___check=false
+      - HDFS_NAMENODE_USER=hdfs
+      - HDFS_DATANODE_USER=hdfs
+      - HDFS_SECONDARYNAMENODE_USER=hdfs
+      - YARN_RESOURCEMANAGER_USER=yarn
+      - YARN_NODEMANAGER_USER=yarn
+      - JAVA_HOME=C:\Program Files\Java\jdk-22
+    ports:
+      - "8188:8188"
+    depends_on:
+      - namenode
+      - resourcemanager
+
+volumes:
+  namenode-data:
+  datanode-data:
